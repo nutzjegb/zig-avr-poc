@@ -13,25 +13,49 @@ pub fn panic(msg: []const u8, _: ?*std.builtin.StackTrace, _: ?usize) noreturn {
 
 comptime {
     // Comptime block to force generating the vector table
-    // stolen from https://github.com/FireFox317/avr-arduino-zig
-
+    // inspired by microzig and https://github.com/FireFox317/avr-arduino-zig
     std.debug.assert(std.mem.eql(u8, "RESET", std.meta.fields(AVR64EA48.VectorTable)[0].name));
     var asm_str: []const u8 = ".section .vectors\njmp _start\n";
 
-    for (std.meta.fields(AVR64EA48.VectorTable)[1..]) |_| {
-        const new_insn = "jmp _unhandled_vector";
-        asm_str = asm_str ++ new_insn ++ "\n";
+    // Check for defined interrupts in main
+    const has_interrupts = @hasDecl(main, "interrupts");
+    for (std.meta.fields(AVR64EA48.VectorTable)[1..]) |field| {
+        if (has_interrupts) {
+            if (@hasDecl(main.interrupts, field.name)) {
+                const handler = @field(main.interrupts, field.name);
+                const wrapper_name = "_wrap_" ++ field.name;
+
+                const exported_fn = struct {
+                    fn wrapper() callconv(.avr_interrupt) void {
+                        // Function is useably inlined, so this is only
+                        // really needed to hint the compiler this is a special
+                        // IRQ entry
+                        handler();
+                    }
+                }.wrapper;
+
+                // Export our wrapper function
+                @export(&exported_fn, .{ .name = wrapper_name, .section = ".vectors" });
+
+                // And add the entry to the vector table
+                asm_str = asm_str ++ "jmp " ++ wrapper_name ++ "\n";
+            } else {
+                asm_str = asm_str ++ "jmp _unhandled_vector\n";
+            }
+        } else {
+            asm_str = asm_str ++ "jmp _unhandled_vector\n";
+        }
     }
     asm (asm_str);
 }
 
-export fn _unhandled_vector() linksection(".vectors") callconv(.c) noreturn {
+export fn _unhandled_vector() linksection(".vectors") callconv(.avr_interrupt) noreturn {
     // We put this function in .vectors as the linker sometimes optimizes it away
-    // zig does not appear to be the problem as adding something like
+    // zig does not appear to be the problem here as adding something like
     // _ = &_unhandled_vector;
     // in a comptime block does not solve it..
-    // See the code above, jmp _unhandled_vector is silently replaced with jmp 0
-    // Which should cause link errors (but does not), therefore I suspect the linker is to blame
+    // The actual emitted code (also see the code above) is jmp 0, instead of jmp _unhandled_vector
+    // Which should cause link errors? Probably the linker tries to be smart
     @panic("Unhandled IRQ\n");
 }
 

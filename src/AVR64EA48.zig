@@ -4,6 +4,9 @@
 const std = @import("std");
 pub const peripherals = @import("peripherals.zig");
 
+// TODO:The following structs are not really needed
+// Currently we only use the entry names (from VectorTable)
+
 // defined for regz
 pub const Handler = extern union {
     naked: *const fn () callconv(.naked) void,

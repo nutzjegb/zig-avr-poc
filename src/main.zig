@@ -1,11 +1,22 @@
 const std = @import("std");
-const chip = @import("AVR64EA48.zig").regs;
+const AVR64EA48 = @import("AVR64EA48.zig");
+const chip = AVR64EA48.regs;
 
 const BAUD_RATE = 115200;
 const F_CPU = 20 * 1_000_000;
 
 const PB3_LED0 = 8;
 const PC0_USART_TX = 1;
+
+pub const interrupts = struct {
+    // Pin Change Interrupt
+    pub fn PORTB_PORT() void {
+        putstr("\n - IRQ! \n");
+
+        // Clear IRQ flags
+        chip.PORTB.INTFLAGS.write(.{ .INT = 0xff });
+    }
+};
 
 fn io_init() void {
     chip.PORTB.DIRSET = PB3_LED0;
@@ -59,6 +70,16 @@ pub fn main() noreturn {
 
     putstr("Hello world!\n");
 
+    // Enable PIN irq
+    chip.PORTB.INTFLAGS.write(.{ .INT = 0xff });
+    chip.PORTB.PIN2CTRL.write(.{
+        .PULLUPEN = 1,
+        .ISC = .RISING,
+        .INLVL = .ST,
+        .INVEN = 0,
+    });
+    AVR64EA48.enable_interrupts();
+
     var led_on = true;
     while (true) {
         if (led_on) {
@@ -77,6 +98,7 @@ pub fn main() noreturn {
 }
 
 fn delay_1ms() void {
+    // Ugly but works..
     for (0..1800) |_| {
         asm volatile (
             \\ nop
