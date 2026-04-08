@@ -1,3 +1,5 @@
+// Generated with regz, see microzig repo
+
 pub const AC = @import("peripherals/AC.zig").AC;
 pub const ADC = @import("peripherals/ADC.zig").ADC;
 pub const BOD = @import("peripherals/BOD.zig").BOD;

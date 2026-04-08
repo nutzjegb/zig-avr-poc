@@ -1,57 +1,8 @@
+// Generated with regz, see microzig repo
+// Some definitions where taken from the microzig repo as the regz output assumes we use microzig
+
 const std = @import("std");
 pub const peripherals = @import("peripherals.zig");
-
-pub const Interrupt = struct {
-    name: [:0]const u8,
-    index: i16,
-};
-
-pub const interrupts: []const Interrupt = &.{
-    .{ .name = "CRCSCAN_NMI", .index = 1 },
-    .{ .name = "BOD_VLM", .index = 2 },
-    .{ .name = "CLKCTRL_CFD", .index = 3 },
-    .{ .name = "RTC_CNT", .index = 4 },
-    .{ .name = "RTC_PIT", .index = 5 },
-    .{ .name = "CCL_CCL", .index = 6 },
-    .{ .name = "PORTA_PORT", .index = 7 },
-    .{ .name = "TCA0_LUNF", .index = 8 },
-    .{ .name = "TCA0_HUNF", .index = 9 },
-    .{ .name = "TCA0_CMP0", .index = 10 },
-    .{ .name = "TCA0_CMP1", .index = 11 },
-    .{ .name = "TCA0_CMP2", .index = 12 },
-    .{ .name = "TCB0_INT", .index = 13 },
-    .{ .name = "TCB1_INT", .index = 14 },
-    .{ .name = "TWI0_TWIS", .index = 15 },
-    .{ .name = "TWI0_TWIM", .index = 16 },
-    .{ .name = "SPI0_INT", .index = 17 },
-    .{ .name = "USART0_RXC", .index = 18 },
-    .{ .name = "USART0_DRE", .index = 19 },
-    .{ .name = "USART0_TXC", .index = 20 },
-    .{ .name = "PORTD_PORT", .index = 21 },
-    .{ .name = "AC0_AC", .index = 22 },
-    .{ .name = "ADC0_ERROR", .index = 23 },
-    .{ .name = "ADC0_RESRDY", .index = 24 },
-    .{ .name = "ADC0_SAMPRDY", .index = 25 },
-    .{ .name = "AC1_AC", .index = 26 },
-    .{ .name = "PORTC_PORT", .index = 27 },
-    .{ .name = "TCB2_INT", .index = 28 },
-    .{ .name = "USART1_RXC", .index = 29 },
-    .{ .name = "USART1_DRE", .index = 30 },
-    .{ .name = "USART1_TXC", .index = 31 },
-    .{ .name = "PORTF_PORT", .index = 32 },
-    .{ .name = "NVMCTRL_EEREADY", .index = 33 },
-    .{ .name = "USART2_RXC", .index = 34 },
-    .{ .name = "USART2_DRE", .index = 35 },
-    .{ .name = "USART2_TXC", .index = 36 },
-    .{ .name = "TCB3_INT", .index = 37 },
-    .{ .name = "TCA1_LUNF", .index = 38 },
-    .{ .name = "TCA1_HUNF", .index = 39 },
-    .{ .name = "TCA1_CMP0", .index = 40 },
-    .{ .name = "TCA1_CMP1", .index = 41 },
-    .{ .name = "TCA1_CMP2", .index = 42 },
-    .{ .name = "PORTE_PORT", .index = 43 },
-    .{ .name = "PORTB_PORT", .index = 44 },
-};
 
 // defined for regz
 pub const Handler = extern union {
@@ -60,7 +11,7 @@ pub const Handler = extern union {
 };
 
 // defined for regz
-pub const unhandled: Handler = .{
+const unhandled: Handler = .{
     .c = struct {
         pub fn unhandled() callconv(.c) void {
             @panic("unhandled interrupt");
@@ -69,9 +20,6 @@ pub const unhandled: Handler = .{
 };
 
 pub const VectorTable = extern struct {
-    // const Handler = microzig.interrupt.Handler;
-    // const unhandled = microzig.interrupt.unhandled;
-
     RESET: Handler,
     CRCSCAN_NMI: Handler = unhandled,
     BOD_VLM: Handler = unhandled,
@@ -118,6 +66,58 @@ pub const VectorTable = extern struct {
     PORTE_PORT: Handler = unhandled,
     PORTB_PORT: Handler = unhandled,
 };
+
+// pub const Interrupt = struct {
+//     name: [:0]const u8,
+//     index: i16,
+// };
+
+// pub const interrupts: []const Interrupt = &.{
+//     .{ .name = "CRCSCAN_NMI", .index = 1 },
+//     .{ .name = "BOD_VLM", .index = 2 },
+//     .{ .name = "CLKCTRL_CFD", .index = 3 },
+//     .{ .name = "RTC_CNT", .index = 4 },
+//     .{ .name = "RTC_PIT", .index = 5 },
+//     .{ .name = "CCL_CCL", .index = 6 },
+//     .{ .name = "PORTA_PORT", .index = 7 },
+//     .{ .name = "TCA0_LUNF", .index = 8 },
+//     .{ .name = "TCA0_HUNF", .index = 9 },
+//     .{ .name = "TCA0_CMP0", .index = 10 },
+//     .{ .name = "TCA0_CMP1", .index = 11 },
+//     .{ .name = "TCA0_CMP2", .index = 12 },
+//     .{ .name = "TCB0_INT", .index = 13 },
+//     .{ .name = "TCB1_INT", .index = 14 },
+//     .{ .name = "TWI0_TWIS", .index = 15 },
+//     .{ .name = "TWI0_TWIM", .index = 16 },
+//     .{ .name = "SPI0_INT", .index = 17 },
+//     .{ .name = "USART0_RXC", .index = 18 },
+//     .{ .name = "USART0_DRE", .index = 19 },
+//     .{ .name = "USART0_TXC", .index = 20 },
+//     .{ .name = "PORTD_PORT", .index = 21 },
+//     .{ .name = "AC0_AC", .index = 22 },
+//     .{ .name = "ADC0_ERROR", .index = 23 },
+//     .{ .name = "ADC0_RESRDY", .index = 24 },
+//     .{ .name = "ADC0_SAMPRDY", .index = 25 },
+//     .{ .name = "AC1_AC", .index = 26 },
+//     .{ .name = "PORTC_PORT", .index = 27 },
+//     .{ .name = "TCB2_INT", .index = 28 },
+//     .{ .name = "USART1_RXC", .index = 29 },
+//     .{ .name = "USART1_DRE", .index = 30 },
+//     .{ .name = "USART1_TXC", .index = 31 },
+//     .{ .name = "PORTF_PORT", .index = 32 },
+//     .{ .name = "NVMCTRL_EEREADY", .index = 33 },
+//     .{ .name = "USART2_RXC", .index = 34 },
+//     .{ .name = "USART2_DRE", .index = 35 },
+//     .{ .name = "USART2_TXC", .index = 36 },
+//     .{ .name = "TCB3_INT", .index = 37 },
+//     .{ .name = "TCA1_LUNF", .index = 38 },
+//     .{ .name = "TCA1_HUNF", .index = 39 },
+//     .{ .name = "TCA1_CMP0", .index = 40 },
+//     .{ .name = "TCA1_CMP1", .index = 41 },
+//     .{ .name = "TCA1_CMP2", .index = 42 },
+//     .{ .name = "PORTE_PORT", .index = 43 },
+//     .{ .name = "PORTB_PORT", .index = 44 },
+// };
 
 pub const regs = struct {
     pub const VPORTA: *volatile peripherals.VPORT = @ptrFromInt(0x0);
@@ -175,96 +175,4 @@ pub fn enable_interrupts() void {
 
 pub fn disable_interrupts() void {
     asm volatile ("cli");
-}
-
-pub const vector_table_asm = blk: {
-    std.debug.assert(std.mem.eql(u8, "RESET", std.meta.fields(VectorTable)[0].name));
-    const asm_str: []const u8 = "jmp microzig_start\n";
-
-    break :blk asm_str;
-};
-
-fn vector_table() callconv(.naked) noreturn {
-    asm volatile (vector_table_asm);
-}
-
-pub fn export_startup_logic() void {
-    _ = startup_logic;
-    @export(&vector_table, .{
-        .name = "_start",
-    });
-}
-
-pub const startup_logic = struct {
-    export fn microzig_unhandled_vector() callconv(.c) noreturn {
-        @panic("Unhandled interrupt");
-    }
-
-    extern fn microzig_main() noreturn;
-
-    export fn microzig_start() callconv(.c) noreturn {
-        // At startup the stack pointer is at the end of RAM
-        // so, no need to set it manually!
-
-        copy_data_to_ram();
-        clear_bss();
-
-        microzig_main();
-    }
-    fn copy_data_to_ram() void {
-        asm volatile (
-            \\  ; load Z register with the address of the data in flash
-            \\  ldi r30, lo8(microzig_data_load_start)
-            \\  ldi r31, hi8(microzig_data_load_start)
-            \\  ; load X register with address of the data in ram
-            \\  ldi r26, lo8(microzig_data_start)
-            \\  ldi r27, hi8(microzig_data_start)
-            \\  ; load address of end of the data in ram
-            \\  ldi r24, lo8(microzig_data_end)
-            \\  ldi r25, hi8(microzig_data_end)
-            \\  rjmp .L2
-            \\
-            \\.L1:
-            \\  lpm r18, Z+ ; copy from Z into r18 and increment Z
-            \\  st X+, r18  ; store r18 at location X and increment X
-            \\
-            \\.L2:
-            \\  cp r26, r24
-            \\  cpc r27, r25 ; check and branch if we are at the end of data
-            \\  brne .L1
-        );
-        // Probably a good idea to add clobbers here, but compiler doesn't seem to care
-    }
-    fn clear_bss() void {
-        asm volatile (
-            \\  ; load X register with the beginning of bss section
-            \\  ldi r26, lo8(microzig_bss_start)
-            \\  ldi r27, hi8(microzig_bss_start)
-            \\  ; load end of the bss in registers
-            \\  ldi r24, lo8(microzig_bss_end)
-            \\  ldi r25, hi8(microzig_bss_end)
-            \\  ldi r18, 0x00
-            \\  rjmp .L4
-            \\
-            \\.L3:
-            \\  st X+, r18
-            \\
-            \\.L4:
-            \\  cp r26, r24
-            \\  cpc r27, r25 ; check and branch if we are at the end of bss
-            \\  brne .L3
-        );
-        // Probably a good idea to add clobbers here, but compiler doesn't seem to care
-    }
-};
-
-comptime {
-    // Instantiate the startup logic for the given CPU type.
-    // This usually implements the `_start` symbol that will populate
-    // the sections .data and .bss with the correct data.
-    // .rodata is not always necessary to be populated (flash based systems
-    // can just index flash, while harvard or flash-less architectures need
-    // to copy .rodata into RAM).
-
-    export_startup_logic();
 }

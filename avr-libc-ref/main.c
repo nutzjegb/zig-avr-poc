@@ -45,14 +45,21 @@ static void putstr(const char *str) {
     }
 }
 
-int main(void)
-{
+static void clk_init(void) {
     CCP = CCP_IOREG_gc;
     CLKCTRL.MCLKCTRLB = 0;
+}
 
+static void io_init(void) {
     PORTB.DIRSET = PB3_LED0;
+}
 
+int main(void)
+{
+    clk_init();
+    io_init();
     usart_init();
+
     putstr("Hello world!\n");
 
     /* Enable SW0 int */
