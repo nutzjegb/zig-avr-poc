@@ -1,29 +1,20 @@
 // Generated with regz, see microzig repo
-// Some definitions where taken from the microzig repo as the regz output assumes we use microzig
+// Did add some convenience functions
 
 const std = @import("std");
 pub const peripherals = @import("peripherals.zig");
 
-// TODO:The following structs are not really needed
-// Currently we only use the entry names (from VectorTable)
-
-// defined for regz
-pub const Handler = extern union {
-    naked: *const fn () callconv(.naked) void,
-    c: *const fn () callconv(.c) void,
+// Microzig uses a different approach here, so beware
+pub const Handler = union(enum) {
+    handler: fn () void,
+    unhandled,
 };
+const unhandled: Handler = .{ .unhandled = {} };
 
-// defined for regz
-const unhandled: Handler = .{
-    .c = struct {
-        pub fn unhandled() callconv(.c) void {
-            @panic("unhandled interrupt");
-        }
-    }.unhandled,
-};
-
-pub const VectorTable = extern struct {
-    RESET: Handler,
+// Modified from regz, the Reset vector is not a interrupt function
+// And we only use this for interrupt registration
+pub const VectorTable = struct {
+    //RESET: Handler,
     CRCSCAN_NMI: Handler = unhandled,
     BOD_VLM: Handler = unhandled,
     CLKCTRL_CFD: Handler = unhandled,
@@ -70,11 +61,15 @@ pub const VectorTable = extern struct {
     PORTB_PORT: Handler = unhandled,
 };
 
+// Not used, so disabled
+// (not needed as zig ignores unused code)
 // pub const Interrupt = struct {
 //     name: [:0]const u8,
 //     index: i16,
 // };
 
+// Not used, so disabled
+// (not needed as zig ignores unused code)
 // pub const interrupts: []const Interrupt = &.{
 //     .{ .name = "CRCSCAN_NMI", .index = 1 },
 //     .{ .name = "BOD_VLM", .index = 2 },

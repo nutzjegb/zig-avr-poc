@@ -8,14 +8,17 @@ const F_CPU = 20 * 1_000_000;
 const PB3_LED0 = 8;
 const PC0_USART_TX = 1;
 
-pub const interrupts = struct {
-    // Pin Change Interrupt
-    pub fn PORTB_PORT() void {
-        putstr("\n - IRQ! \n");
+// Pin Change Interrupt
+fn portb_irq() void {
+    putstr("\n - IRQ! \n");
 
-        // Clear IRQ flags
-        chip.PORTB.INTFLAGS.write(.{ .INT = 0xff });
-    }
+    // Clear IRQ flags
+    chip.PORTB.INTFLAGS.write(.{ .INT = 0xff });
+}
+
+// Register our interrupt so it ends up in the VectorTable
+pub const interrupts: AVR64EA48.VectorTable = .{
+    .PORTB_PORT = .{ .handler = portb_irq },
 };
 
 fn io_init() void {
@@ -65,8 +68,6 @@ pub fn main() noreturn {
     clock_int_hf_init();
     io_init();
     usart_init();
-
-    // TODO: VPORT?
 
     putstr("Hello world!\n");
 

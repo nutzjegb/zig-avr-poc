@@ -10,7 +10,7 @@ AVR64EA48 CURIOSITY NANO EVALUATION KIT
 ## Microzig?
 No I didn't use microzig, the HAL looks incomplete and the vector table part is missing?
 (at the time of writing..)
-I did use regz tool to generate the CPU definitions
+I did use the regz tool to generate the CPU definitions
 As regz assumes you use microzig I copied some definitions.
 
 ## Recommended Zig Version

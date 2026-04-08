@@ -13,37 +13,53 @@ pub fn panic(msg: []const u8, _: ?*std.builtin.StackTrace, _: ?usize) noreturn {
 
 comptime {
     // Comptime block to force generating the vector table
-    // inspired by microzig and https://github.com/FireFox317/avr-arduino-zig
-    std.debug.assert(std.mem.eql(u8, "RESET", std.meta.fields(AVR64EA48.VectorTable)[0].name));
+    // bit inspired by microzig and https://github.com/FireFox317/avr-arduino-zig
+
+    // Start of the VectorTable, jump to _start
     var asm_str: []const u8 = ".section .vectors\njmp _start\n";
 
     // Check for defined interrupts in main
     const has_interrupts = @hasDecl(main, "interrupts");
-    for (std.meta.fields(AVR64EA48.VectorTable)[1..]) |field| {
+    // Check the type
+    if (has_interrupts) {
+        const interrupts_type = @TypeOf(main.interrupts);
+        if (interrupts_type != AVR64EA48.VectorTable) {
+            @compileError("Incorrect type for main.interrupts");
+        }
+    }
+
+    for (std.meta.fields(AVR64EA48.VectorTable)) |field| {
+        const unhandled_ins = "jmp _unhandled_vector\n";
+
         if (has_interrupts) {
-            if (@hasDecl(main.interrupts, field.name)) {
-                const handler = @field(main.interrupts, field.name);
-                const wrapper_name = "_wrap_" ++ field.name;
+            const entry = @field(main.interrupts, field.name);
+            const ins = switch (entry) {
+                .unhandled => unhandled_ins,
+                .handler => |handler| blk: {
+                    const wrapper_name = "_wrap_" ++ field.name;
+                    const exported_fn = struct {
+                        fn wrapper() callconv(.avr_interrupt) void {
+                            // Function is useably inlined, so this is only
+                            // really needed to hint the compiler this is a special
+                            // IRQ entry
+                            handler();
+                        }
+                    }.wrapper;
 
-                const exported_fn = struct {
-                    fn wrapper() callconv(.avr_interrupt) void {
-                        // Function is useably inlined, so this is only
-                        // really needed to hint the compiler this is a special
-                        // IRQ entry
-                        handler();
-                    }
-                }.wrapper;
+                    // Export our wrapper function
+                    // (put it in .vectors to be sure the linker does not optimize it away)
+                    @export(&exported_fn, .{
+                        .name = wrapper_name,
+                        .section = ".vectors",
+                    });
 
-                // Export our wrapper function
-                @export(&exported_fn, .{ .name = wrapper_name, .section = ".vectors" });
-
-                // And add the entry to the vector table
-                asm_str = asm_str ++ "jmp " ++ wrapper_name ++ "\n";
-            } else {
-                asm_str = asm_str ++ "jmp _unhandled_vector\n";
-            }
+                    // And add the entry to the vector table
+                    break :blk "jmp " ++ wrapper_name ++ "\n";
+                },
+            };
+            asm_str = asm_str ++ ins;
         } else {
-            asm_str = asm_str ++ "jmp _unhandled_vector\n";
+            asm_str = asm_str ++ unhandled_ins;
         }
     }
     asm (asm_str);
@@ -116,8 +132,7 @@ fn clear_bss() void {
     // Probably a good idea to add clobbers here, but compiler doesn't seem to care
 
     // The above could be replaced with something like this I suppose
-    // however this add safety checks to the binary
-    // (in ReleaseSafe)
+    // @setRuntimeSafety(false);
     // const bss_start = @extern(*u8, .{ .name = "_bss_start" });
     // const bss_end = @extern(*u8, .{ .name = "_bss_end" });
     // for (@intFromPtr(bss_start)..@intFromPtr(bss_end)) |addr| {
@@ -125,6 +140,7 @@ fn clear_bss() void {
     //     ptr.* = 0;
     // }
     // Or something like this?
+    // (zig 0.15.2 appears to crash)
     // const bss = @as([*]u8, @ptrCast(bss_start))[0 .. @intFromPtr(bss_end) - @intFromPtr(bss_start)];
     // @memset(bss, 0);
 }
