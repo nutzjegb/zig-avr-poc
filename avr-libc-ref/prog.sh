@@ -2,4 +2,4 @@
 
 set -ex
 
-avrdude -p avr64ea48 -c pkobn_updi -U flash:w:a.hex
+avrdude -p avr64ea48 -c pkobn_updi -U flash:w:ref.hex
