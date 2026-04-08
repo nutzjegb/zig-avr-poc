@@ -8,9 +8,22 @@ const F_CPU = 20 * 1_000_000;
 const PB3_LED0 = 8;
 const PC0_USART_TX = 1;
 
+const Delay = enum(usize) {
+    DELAY_100 = 100,
+    DELAY_250 = 250,
+    DELAY_500 = 500,
+    DELAY_1000 = 1000,
+};
+var current_delay = Delay.DELAY_1000;
+
 // Pin Change Interrupt
 fn portb_irq() void {
-    putstr("\n - IRQ! \n");
+    current_delay = switch (current_delay) {
+        .DELAY_100 => .DELAY_250,
+        .DELAY_250 => .DELAY_500,
+        .DELAY_500 => .DELAY_1000,
+        .DELAY_1000 => .DELAY_100,
+    };
 
     // Clear IRQ flags
     chip.PORTB.INTFLAGS.write(.{ .INT = 0xff });
@@ -88,13 +101,19 @@ pub fn main() noreturn {
         } else {
             chip.PORTB.OUTCLR = PB3_LED0;
         }
+        led_on = !led_on;
 
-        putstr("delay...\n");
-        for (0..1000) |_| {
+        putstr("delay ");
+        putstr(switch (current_delay) {
+            .DELAY_100 => "100",
+            .DELAY_250 => "250",
+            .DELAY_500 => "500",
+            .DELAY_1000 => "1000",
+        });
+        putstr("\n");
+        for (0..@intFromEnum(current_delay)) |_| {
             delay_1ms();
         }
-
-        led_on = !led_on;
     }
 }
 
