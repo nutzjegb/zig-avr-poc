@@ -1,0 +1,270 @@
+const std = @import("std");
+pub const peripherals = @import("peripherals.zig");
+
+pub const Interrupt = struct {
+    name: [:0]const u8,
+    index: i16,
+};
+
+pub const interrupts: []const Interrupt = &.{
+    .{ .name = "CRCSCAN_NMI", .index = 1 },
+    .{ .name = "BOD_VLM", .index = 2 },
+    .{ .name = "CLKCTRL_CFD", .index = 3 },
+    .{ .name = "RTC_CNT", .index = 4 },
+    .{ .name = "RTC_PIT", .index = 5 },
+    .{ .name = "CCL_CCL", .index = 6 },
+    .{ .name = "PORTA_PORT", .index = 7 },
+    .{ .name = "TCA0_LUNF", .index = 8 },
+    .{ .name = "TCA0_HUNF", .index = 9 },
+    .{ .name = "TCA0_CMP0", .index = 10 },
+    .{ .name = "TCA0_CMP1", .index = 11 },
+    .{ .name = "TCA0_CMP2", .index = 12 },
+    .{ .name = "TCB0_INT", .index = 13 },
+    .{ .name = "TCB1_INT", .index = 14 },
+    .{ .name = "TWI0_TWIS", .index = 15 },
+    .{ .name = "TWI0_TWIM", .index = 16 },
+    .{ .name = "SPI0_INT", .index = 17 },
+    .{ .name = "USART0_RXC", .index = 18 },
+    .{ .name = "USART0_DRE", .index = 19 },
+    .{ .name = "USART0_TXC", .index = 20 },
+    .{ .name = "PORTD_PORT", .index = 21 },
+    .{ .name = "AC0_AC", .index = 22 },
+    .{ .name = "ADC0_ERROR", .index = 23 },
+    .{ .name = "ADC0_RESRDY", .index = 24 },
+    .{ .name = "ADC0_SAMPRDY", .index = 25 },
+    .{ .name = "AC1_AC", .index = 26 },
+    .{ .name = "PORTC_PORT", .index = 27 },
+    .{ .name = "TCB2_INT", .index = 28 },
+    .{ .name = "USART1_RXC", .index = 29 },
+    .{ .name = "USART1_DRE", .index = 30 },
+    .{ .name = "USART1_TXC", .index = 31 },
+    .{ .name = "PORTF_PORT", .index = 32 },
+    .{ .name = "NVMCTRL_EEREADY", .index = 33 },
+    .{ .name = "USART2_RXC", .index = 34 },
+    .{ .name = "USART2_DRE", .index = 35 },
+    .{ .name = "USART2_TXC", .index = 36 },
+    .{ .name = "TCB3_INT", .index = 37 },
+    .{ .name = "TCA1_LUNF", .index = 38 },
+    .{ .name = "TCA1_HUNF", .index = 39 },
+    .{ .name = "TCA1_CMP0", .index = 40 },
+    .{ .name = "TCA1_CMP1", .index = 41 },
+    .{ .name = "TCA1_CMP2", .index = 42 },
+    .{ .name = "PORTE_PORT", .index = 43 },
+    .{ .name = "PORTB_PORT", .index = 44 },
+};
+
+// defined for regz
+pub const Handler = extern union {
+    naked: *const fn () callconv(.naked) void,
+    c: *const fn () callconv(.c) void,
+};
+
+// defined for regz
+pub const unhandled: Handler = .{
+    .c = struct {
+        pub fn unhandled() callconv(.c) void {
+            @panic("unhandled interrupt");
+        }
+    }.unhandled,
+};
+
+pub const VectorTable = extern struct {
+    // const Handler = microzig.interrupt.Handler;
+    // const unhandled = microzig.interrupt.unhandled;
+
+    RESET: Handler,
+    CRCSCAN_NMI: Handler = unhandled,
+    BOD_VLM: Handler = unhandled,
+    CLKCTRL_CFD: Handler = unhandled,
+    RTC_CNT: Handler = unhandled,
+    RTC_PIT: Handler = unhandled,
+    CCL_CCL: Handler = unhandled,
+    PORTA_PORT: Handler = unhandled,
+    TCA0_LUNF: Handler = unhandled,
+    TCA0_HUNF: Handler = unhandled,
+    TCA0_CMP0: Handler = unhandled,
+    TCA0_CMP1: Handler = unhandled,
+    TCA0_CMP2: Handler = unhandled,
+    TCB0_INT: Handler = unhandled,
+    TCB1_INT: Handler = unhandled,
+    TWI0_TWIS: Handler = unhandled,
+    TWI0_TWIM: Handler = unhandled,
+    SPI0_INT: Handler = unhandled,
+    USART0_RXC: Handler = unhandled,
+    USART0_DRE: Handler = unhandled,
+    USART0_TXC: Handler = unhandled,
+    PORTD_PORT: Handler = unhandled,
+    AC0_AC: Handler = unhandled,
+    ADC0_ERROR: Handler = unhandled,
+    ADC0_RESRDY: Handler = unhandled,
+    ADC0_SAMPRDY: Handler = unhandled,
+    AC1_AC: Handler = unhandled,
+    PORTC_PORT: Handler = unhandled,
+    TCB2_INT: Handler = unhandled,
+    USART1_RXC: Handler = unhandled,
+    USART1_DRE: Handler = unhandled,
+    USART1_TXC: Handler = unhandled,
+    PORTF_PORT: Handler = unhandled,
+    NVMCTRL_EEREADY: Handler = unhandled,
+    USART2_RXC: Handler = unhandled,
+    USART2_DRE: Handler = unhandled,
+    USART2_TXC: Handler = unhandled,
+    TCB3_INT: Handler = unhandled,
+    TCA1_LUNF: Handler = unhandled,
+    TCA1_HUNF: Handler = unhandled,
+    TCA1_CMP0: Handler = unhandled,
+    TCA1_CMP1: Handler = unhandled,
+    TCA1_CMP2: Handler = unhandled,
+    PORTE_PORT: Handler = unhandled,
+    PORTB_PORT: Handler = unhandled,
+};
+
+pub const regs = struct {
+    pub const VPORTA: *volatile peripherals.VPORT = @ptrFromInt(0x0);
+    pub const VPORTB: *volatile peripherals.VPORT = @ptrFromInt(0x4);
+    pub const VPORTC: *volatile peripherals.VPORT = @ptrFromInt(0x8);
+    pub const VPORTD: *volatile peripherals.VPORT = @ptrFromInt(0xc);
+    pub const VPORTE: *volatile peripherals.VPORT = @ptrFromInt(0x10);
+    pub const VPORTF: *volatile peripherals.VPORT = @ptrFromInt(0x14);
+    pub const GPR: *volatile peripherals.GPR = @ptrFromInt(0x1c);
+    pub const CPU: *volatile peripherals.CPU = @ptrFromInt(0x30);
+    pub const RSTCTRL: *volatile peripherals.RSTCTRL = @ptrFromInt(0x40);
+    pub const SLPCTRL: *volatile peripherals.SLPCTRL = @ptrFromInt(0x50);
+    pub const CLKCTRL: *volatile peripherals.CLKCTRL = @ptrFromInt(0x60);
+    pub const BOD: *volatile peripherals.BOD = @ptrFromInt(0xa0);
+    pub const VREF: *volatile peripherals.VREF = @ptrFromInt(0xb0);
+    pub const WDT: *volatile peripherals.WDT = @ptrFromInt(0x100);
+    pub const CPUINT: *volatile peripherals.CPUINT = @ptrFromInt(0x110);
+    pub const CRCSCAN: *volatile peripherals.CRCSCAN = @ptrFromInt(0x120);
+    pub const RTC: *volatile peripherals.RTC = @ptrFromInt(0x140);
+    pub const CCL: *volatile peripherals.CCL = @ptrFromInt(0x1c0);
+    pub const EVSYS: *volatile peripherals.EVSYS = @ptrFromInt(0x200);
+    pub const PORTA: *volatile peripherals.PORT = @ptrFromInt(0x400);
+    pub const PORTB: *volatile peripherals.PORT = @ptrFromInt(0x420);
+    pub const PORTC: *volatile peripherals.PORT = @ptrFromInt(0x440);
+    pub const PORTD: *volatile peripherals.PORT = @ptrFromInt(0x460);
+    pub const PORTE: *volatile peripherals.PORT = @ptrFromInt(0x480);
+    pub const PORTF: *volatile peripherals.PORT = @ptrFromInt(0x4a0);
+    pub const PORTMUX: *volatile peripherals.PORTMUX = @ptrFromInt(0x5e0);
+    pub const ADC0: *volatile peripherals.ADC = @ptrFromInt(0x600);
+    pub const AC0: *volatile peripherals.AC = @ptrFromInt(0x680);
+    pub const AC1: *volatile peripherals.AC = @ptrFromInt(0x688);
+    pub const DAC0: *volatile peripherals.DAC = @ptrFromInt(0x6a0);
+    pub const USART0: *volatile peripherals.USART = @ptrFromInt(0x800);
+    pub const USART1: *volatile peripherals.USART = @ptrFromInt(0x820);
+    pub const USART2: *volatile peripherals.USART = @ptrFromInt(0x840);
+    pub const TWI0: *volatile peripherals.TWI = @ptrFromInt(0x900);
+    pub const SPI0: *volatile peripherals.SPI = @ptrFromInt(0x940);
+    pub const TCA0: *volatile peripherals.TCA = @ptrFromInt(0xa00);
+    pub const TCA1: *volatile peripherals.TCA = @ptrFromInt(0xa40);
+    pub const TCB0: *volatile peripherals.TCB = @ptrFromInt(0xb00);
+    pub const TCB1: *volatile peripherals.TCB = @ptrFromInt(0xb10);
+    pub const TCB2: *volatile peripherals.TCB = @ptrFromInt(0xb20);
+    pub const TCB3: *volatile peripherals.TCB = @ptrFromInt(0xb30);
+    pub const SYSCFG: *volatile peripherals.SYSCFG = @ptrFromInt(0xf00);
+    pub const NVMCTRL: *volatile peripherals.NVMCTRL = @ptrFromInt(0x1000);
+    pub const LOCK: *volatile peripherals.LOCK = @ptrFromInt(0x1040);
+    pub const FUSE: *volatile peripherals.FUSE = @ptrFromInt(0x1050);
+    pub const USERROW: *volatile peripherals.USERROW = @ptrFromInt(0x1080);
+    pub const SIGROW: *volatile peripherals.SIGROW = @ptrFromInt(0x1100);
+};
+
+pub fn enable_interrupts() void {
+    asm volatile ("sei");
+}
+
+pub fn disable_interrupts() void {
+    asm volatile ("cli");
+}
+
+pub const vector_table_asm = blk: {
+    std.debug.assert(std.mem.eql(u8, "RESET", std.meta.fields(VectorTable)[0].name));
+    const asm_str: []const u8 = "jmp microzig_start\n";
+
+    break :blk asm_str;
+};
+
+fn vector_table() callconv(.naked) noreturn {
+    asm volatile (vector_table_asm);
+}
+
+pub fn export_startup_logic() void {
+    _ = startup_logic;
+    @export(&vector_table, .{
+        .name = "_start",
+    });
+}
+
+pub const startup_logic = struct {
+    export fn microzig_unhandled_vector() callconv(.c) noreturn {
+        @panic("Unhandled interrupt");
+    }
+
+    extern fn microzig_main() noreturn;
+
+    export fn microzig_start() callconv(.c) noreturn {
+        // At startup the stack pointer is at the end of RAM
+        // so, no need to set it manually!
+
+        copy_data_to_ram();
+        clear_bss();
+
+        microzig_main();
+    }
+    fn copy_data_to_ram() void {
+        asm volatile (
+            \\  ; load Z register with the address of the data in flash
+            \\  ldi r30, lo8(microzig_data_load_start)
+            \\  ldi r31, hi8(microzig_data_load_start)
+            \\  ; load X register with address of the data in ram
+            \\  ldi r26, lo8(microzig_data_start)
+            \\  ldi r27, hi8(microzig_data_start)
+            \\  ; load address of end of the data in ram
+            \\  ldi r24, lo8(microzig_data_end)
+            \\  ldi r25, hi8(microzig_data_end)
+            \\  rjmp .L2
+            \\
+            \\.L1:
+            \\  lpm r18, Z+ ; copy from Z into r18 and increment Z
+            \\  st X+, r18  ; store r18 at location X and increment X
+            \\
+            \\.L2:
+            \\  cp r26, r24
+            \\  cpc r27, r25 ; check and branch if we are at the end of data
+            \\  brne .L1
+        );
+        // Probably a good idea to add clobbers here, but compiler doesn't seem to care
+    }
+    fn clear_bss() void {
+        asm volatile (
+            \\  ; load X register with the beginning of bss section
+            \\  ldi r26, lo8(microzig_bss_start)
+            \\  ldi r27, hi8(microzig_bss_start)
+            \\  ; load end of the bss in registers
+            \\  ldi r24, lo8(microzig_bss_end)
+            \\  ldi r25, hi8(microzig_bss_end)
+            \\  ldi r18, 0x00
+            \\  rjmp .L4
+            \\
+            \\.L3:
+            \\  st X+, r18
+            \\
+            \\.L4:
+            \\  cp r26, r24
+            \\  cpc r27, r25 ; check and branch if we are at the end of bss
+            \\  brne .L3
+        );
+        // Probably a good idea to add clobbers here, but compiler doesn't seem to care
+    }
+};
+
+comptime {
+    // Instantiate the startup logic for the given CPU type.
+    // This usually implements the `_start` symbol that will populate
+    // the sections .data and .bss with the correct data.
+    // .rodata is not always necessary to be populated (flash based systems
+    // can just index flash, while harvard or flash-less architectures need
+    // to copy .rodata into RAM).
+
+    export_startup_logic();
+}
