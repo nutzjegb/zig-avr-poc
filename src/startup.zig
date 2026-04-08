@@ -90,4 +90,17 @@ fn clear_bss() void {
         \\  brne .L3
     );
     // Probably a good idea to add clobbers here, but compiler doesn't seem to care
+
+    // The above could be replaced with something like this I suppose
+    // however this add safety checks to the binary
+    // (in ReleaseSafe)
+    // const bss_start = @extern(*u8, .{ .name = "_bss_start" });
+    // const bss_end = @extern(*u8, .{ .name = "_bss_end" });
+    // for (@intFromPtr(bss_start)..@intFromPtr(bss_end)) |addr| {
+    //     const ptr: *u8 = @ptrFromInt(addr);
+    //     ptr.* = 0;
+    // }
+    // Or something like this?
+    // const bss = @as([*]u8, @ptrCast(bss_start))[0 .. @intFromPtr(bss_end) - @intFromPtr(bss_start)];
+    // @memset(bss, 0);
 }
