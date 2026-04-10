@@ -6,7 +6,7 @@ pub fn build(b: *std.Build) void {
         .os_tag = .freestanding,
         .abi = .none,
         .cpu_model = .{
-            // Correct model not available, but this have the same CPU features
+            // Correct model not available, but this has the same CPU features
             .explicit = &std.Target.avr.cpu.avrxmega2,
         },
     });
@@ -34,7 +34,8 @@ pub fn build(b: *std.Build) void {
     b.default_step.dependOn(&copy_hex.step);
 
     // Add .dis file to output
-    // Note this may also be possible by adding emit asm to the exe build step?
+    // Note zig can also output the generated asm, could be helpfull!
+    // (as it is bit more readable then the objdump output)
     const avr_objdump = b.addSystemCommand(&.{
         "avr-objdump",
         "-xd",

@@ -34,7 +34,7 @@ comptime {
                 const wrapper_name = "_wrap_" ++ field.name;
                 const exported_fn = struct {
                     fn wrapper() callconv(.avr_interrupt) void {
-                        // Function is useably inlined, so this is only
+                        // Function is usually inlined, so this is only
                         // really needed to hint the compiler this is a special
                         // IRQ entry
                         handler();

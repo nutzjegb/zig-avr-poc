@@ -12,7 +12,7 @@ pub const Handler = union(enum) {
 const unhandled: Handler = .{ .unhandled = {} };
 
 // Modified from regz, the Reset vector is not a interrupt function
-// And we only use this for interrupt registration
+// and we only use this for interrupt registration
 pub const VectorTable = struct {
     //RESET: Handler,
     CRCSCAN_NMI: Handler = unhandled,
@@ -67,8 +67,7 @@ pub const VectorTable = struct {
 //     name: [:0]const u8,
 //     index: i16,
 // };
-
-// Not used, so disabled
+//
 // (not needed as zig ignores unused code)
 // pub const interrupts: []const Interrupt = &.{
 //     .{ .name = "CRCSCAN_NMI", .index = 1 },
