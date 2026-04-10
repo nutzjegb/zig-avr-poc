@@ -1,5 +1,6 @@
 const std = @import("std");
 const main = @import("main.zig");
+const interrupts = @import("main.zig").interrupts;
 const AVR64EA48 = @import("AVR64EA48.zig");
 
 pub fn panic(msg: []const u8, _: ?*std.builtin.StackTrace, _: ?usize) noreturn {
@@ -18,49 +19,40 @@ comptime {
     // Start of the VectorTable, jump to _start
     var asm_str: []const u8 = ".section .vectors\njmp _start\n";
 
-    // Check for defined interrupts in main
-    const has_interrupts = @hasDecl(main, "interrupts");
-    // Check the type
-    if (has_interrupts) {
-        const interrupts_type = @TypeOf(main.interrupts);
-        if (interrupts_type != AVR64EA48.VectorTable) {
-            @compileError("Incorrect type for main.interrupts");
-        }
+    // Sanity check
+    if (@TypeOf(interrupts) != AVR64EA48.VectorTable) {
+        @compileError("Incorrect type for interrupts");
     }
 
     for (std.meta.fields(AVR64EA48.VectorTable)) |field| {
         const unhandled_ins = "jmp _unhandled_vector\n";
 
-        if (has_interrupts) {
-            const entry = @field(main.interrupts, field.name);
-            const ins = switch (entry) {
-                .unhandled => unhandled_ins,
-                .handler => |handler| blk: {
-                    const wrapper_name = "_wrap_" ++ field.name;
-                    const exported_fn = struct {
-                        fn wrapper() callconv(.avr_interrupt) void {
-                            // Function is useably inlined, so this is only
-                            // really needed to hint the compiler this is a special
-                            // IRQ entry
-                            handler();
-                        }
-                    }.wrapper;
+        const entry = @field(main.interrupts, field.name);
+        const ins = switch (entry) {
+            .unhandled => unhandled_ins,
+            .handler => |handler| blk: {
+                const wrapper_name = "_wrap_" ++ field.name;
+                const exported_fn = struct {
+                    fn wrapper() callconv(.avr_interrupt) void {
+                        // Function is useably inlined, so this is only
+                        // really needed to hint the compiler this is a special
+                        // IRQ entry
+                        handler();
+                    }
+                }.wrapper;
 
-                    // Export our wrapper function
-                    // (put it in .vectors to be sure the linker does not optimize it away)
-                    @export(&exported_fn, .{
-                        .name = wrapper_name,
-                        .section = ".vectors",
-                    });
+                // Export our wrapper function
+                // (put it in .vectors to be sure the linker does not optimize it away)
+                @export(&exported_fn, .{
+                    .name = wrapper_name,
+                    .section = ".vectors",
+                });
 
-                    // And add the entry to the vector table
-                    break :blk "jmp " ++ wrapper_name ++ "\n";
-                },
-            };
-            asm_str = asm_str ++ ins;
-        } else {
-            asm_str = asm_str ++ unhandled_ins;
-        }
+                // And add the entry to the vector table
+                break :blk "jmp " ++ wrapper_name ++ "\n";
+            },
+        };
+        asm_str = asm_str ++ ins;
     }
     asm (asm_str);
 }
