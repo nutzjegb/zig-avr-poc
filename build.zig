@@ -25,10 +25,6 @@ pub fn build(b: *std.Build) void {
     const exe_path = exe.getEmittedBin();
     b.installArtifact(exe);
 
-    // TODO: Double check if really needed?
-    const check_link = b.addCheckFile(b.path("src/linker.ld"), .{});
-    exe.step.dependOn(&check_link.step);
-
     // Add .hex file to output
     const hex = b.addObjCopy(exe_path, .{
         .format = .hex,
