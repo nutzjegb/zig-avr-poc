@@ -1,6 +1,5 @@
 const std = @import("std");
 const main = @import("main.zig");
-const interrupts = @import("main.zig").interrupts;
 const AVR64EA48 = @import("AVR64EA48.zig");
 
 pub fn panic(msg: []const u8, _: ?*std.builtin.StackTrace, _: ?usize) noreturn {
@@ -12,22 +11,14 @@ pub fn panic(msg: []const u8, _: ?*std.builtin.StackTrace, _: ?usize) noreturn {
     while (true) {}
 }
 
-comptime {
-    // Comptime block to force generating the vector table
-    // bit inspired by microzig and https://github.com/FireFox317/avr-arduino-zig
-
+fn gen_vector_table(interrupts: AVR64EA48.VectorTable) []const u8 {
     // Start of the VectorTable, jump to _start
     var asm_str: []const u8 = ".section .vectors\njmp _start\n";
 
-    // Sanity check
-    if (@TypeOf(interrupts) != AVR64EA48.VectorTable) {
-        @compileError("Incorrect type for interrupts");
-    }
-
-    for (std.meta.fields(AVR64EA48.VectorTable)) |field| {
+    for (std.meta.fields(@TypeOf(interrupts))) |field| {
         const unhandled_ins = "jmp _unhandled_vector\n";
 
-        const entry = @field(main.interrupts, field.name);
+        const entry = @field(interrupts, field.name);
         const ins = switch (entry) {
             .unhandled => unhandled_ins,
             .handler => |handler| blk: {
@@ -54,7 +45,13 @@ comptime {
         };
         asm_str = asm_str ++ ins;
     }
-    asm (asm_str);
+    return asm_str;
+}
+
+comptime {
+    // Comptime block to force generating the vector table
+    // bit inspired by microzig and https://github.com/FireFox317/avr-arduino-zig
+    asm (gen_vector_table(main.interrupts));
 }
 
 export fn _unhandled_vector() linksection(".vectors") callconv(.avr_interrupt) noreturn {
